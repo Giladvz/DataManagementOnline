@@ -3,6 +3,14 @@ import lxml.html
 import requests
 import queue
 
+xpaths = [["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Population']/td//a[1]/text()","Population"],
+               ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='President']/td//a[1]/text()","President"],
+               ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Prime Minister']/td//a[1]/text()","Prime_Minister"],
+               ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Area']/td//a[1]/text()","Area"],
+               ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Capital']/td//a[1]/text()","Capital"],
+               ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Government']/td//a[not(contains(@href,'#cite'))]/text()","Government_Form"]]
+
+
 
 
 
@@ -24,7 +32,7 @@ def create_ontology():
     import_countries()
     while not countries_queue.empty():
         country = countries_queue.get()
-        for xp in xpaths[:5]:
+        for xp in xpaths:
             add_to_ontology(country, xp[0], xp[1], g)
     g.serialize(destination='ontology.nt', format='nt')
 
