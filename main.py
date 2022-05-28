@@ -3,19 +3,19 @@ import lxml.html
 import requests
 import queue
 
-xpaths = [["/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/a/text()='Population']/following-sibling::*[1]/td/text()","Population"],
-      ["/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/div/a/text() = 'President']/td/a/text()","President"],
-       ["/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/div/a/text() = 'Prime Minister']/td/a/text() ","Prime Minister"],
-       ["/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/a/text() ='Area ']/following-sibling::*[1]/td/text() ","Area"],
-       ["/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/text() = 'Capital']/td/a/text()","Capital"],
-       ["/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[./th/a[text()='Government']]/td/a/text() | tr[./th/a[text()='Government']]/td/span/a/text() | tr[./th/text()='Government']/td/a/text()","Government Form"]
-      ]
 
+
+
+
+##pipi's xpaths
+p_birth_date_xpath = "//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Born']//span[@class='bday']//text()"
+
+p_birth_place_xpath = "//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Born']//td[1]//text()"
 
 countries_queue = queue.Queue()
-prefix = "http://en.wikipedia.org"
+prefix = "http://en.wikipedia.org/"
 RDF_URI_PREFIX = "http://example.org/"
-labels_for_country = ["Prime Minister", "President", "Government", "capital", "Area"]
+labels_for_country = ["Prime_Minister", "President", "Government_Form", "capital", "Area", "Population"]
 labels_for_Persons = ["Born"]
 
 
@@ -26,19 +26,43 @@ def create_ontology():
         country = countries_queue.get()
         for xp in xpaths[:5]:
             add_to_ontology(country, xp[0], xp[1], g)
-    print(g)
+    g.serialize(destination='ontology.nt', format='nt')
+
+
+
+##Adding pipi's info to the Ontology
+def get_prim_and_pres(p,g):
+    print(p)
+    url = prefix + p.replace(" ", "_")
+    doc = lxml.html.fromstring((requests.get(url)).content)
+    #print(doc)
+    for elem in doc.xpath(p_birth_date_xpath):
+        if(elem):
+            g.add(Literal(str(elem).strip()),URIRef(RDF_URI_PREFIX + "birth_date"), URIRef(RDF_URI_PREFIX + p))
+    #######
+    for elem in doc.xpath(p_birth_place_xpath):
+        #print(elem)
+        #elem = birth_data[-1]
+        #print(elem + "--------------------------")
+        ########
+        g.add(Literal(str(elem).strip()),URIRef(RDF_URI_PREFIX + "birth_location"), URIRef(RDF_URI_PREFIX + p))
+
+
 
 def add_to_ontology(country, xpath, literal, g):
-    print(country)
-    r = requests.get(country)
+    r = requests.get(prefix + country)
     doc = lxml.html.fromstring(r.content)
-    elem = doc.xpath(xpath)
-    g.add((Literal(str(elem).strip()), URIRef(RDF_URI_PREFIX + literal), URIRef(RDF_URI_PREFIX + country[5:])))
+    for elem in doc.xpath(xpath):
+        if (literal in ["Prime_Minister", "President"]):
+            get_prim_and_pres(elem, g)
+        print(literal+ " of " + country + " is "+ elem)
+        g.add((Literal(str(elem).strip()), URIRef(RDF_URI_PREFIX + literal), URIRef(RDF_URI_PREFIX + country[5:])))
+
 
 
 def push_to_queue(t):
 #    if (f"{prefix}{t}" not in visited):
-        countries_queue.put(f"{prefix}{t}")
+        countries_queue.put(t)
  #       visited.add(f"{prefix}{t}")
 
 
@@ -59,6 +83,3 @@ def import_countries():
 
 print(" Hello World              ".strip())
 create_ontology()
-
-
-
