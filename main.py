@@ -3,12 +3,12 @@ import lxml.html
 import requests
 import queue
 
-xpaths = [{"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/a/text()='Population']/following-sibling::*[1]/td/text()", True,"Population"},
-      {"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/div/a/text() = 'President']/td/a/text()",False,"President"},
-       {"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/div/a/text() = 'Prime Minister']/td/a/text() ",True,"Prime Minister"},
-       {"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/a/text() ='Area ']/following-sibling::*[1]/td/text() ",True,"Area"},
-       {"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/text() = 'Capital']/td/a/text()",True,"Capital"},
-       {"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[./th/a[text()='Government']]/td/a/text() | tr[./th/a[text()='Government']]/td/span/a/text() | tr[./th/text()='Government']/td/a/text()",True,"Government Form"}
+xpaths = [{"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/a/text()='Population']/following-sibling::*[1]/td/text()","Population"},
+      {"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/div/a/text() = 'President']/td/a/text()","President"},
+       {"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/div/a/text() = 'Prime Minister']/td/a/text() ","Prime Minister"},
+       {"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/a/text() ='Area ']/following-sibling::*[1]/td/text() ","Area"},
+       {"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[th/text() = 'Capital']/td/a/text()","Capital"},
+       {"/html/body/div[3]/div[3]/div[5]/div[1]/table[1]/tbody/tr[./th/a[text()='Government']]/td/a/text() | tr[./th/a[text()='Government']]/td/span/a/text() | tr[./th/text()='Government']/td/a/text()","Government Form"}
       ]
 
 r = requests.get("https://en.wikipedia.org/wiki/List_of_countries_by_population_(United_Nations)")
@@ -25,18 +25,16 @@ def create_ontology():
     import_countries()
     while not countries_queue.empty():
         country = countries_queue.get()
-        countryname = country[5:]
-        country_literal = URIRef(RDF_URI_PREFIX + countryname)
+        country_literal = URIRef(RDF_URI_PREFIX + country[5:])
         for xp in xpaths[:5]:
-            add_to_ontology(countryname, xp[0], xp[1], xp[2], g)
+            add_to_ontology(country_literal, xp[0], xp[1], g)
 
 
-def add_to_ontology(name, xpath, spaces,literal,g):
+def add_to_ontology(country, xpath,literal,g):
     for elem in self.doc.xpath(xpath):
-        if spaces:
-            g.add((country, URIRef(RDF_URI_PREFIX + literal), Literal(str(elem).replace(" ", ""))))
-        else:
-            g.add((country, URIRef(RDF_URI_PREFIX + literal), Literal(str(elem))))
+        g.add(country, URIRef(RDF_URI_PREFIX + literal), Literal(str(elem).strip()))
+    else:
+        g.add((country, URIRef(RDF_URI_PREFIX + literal), Literal(str(elem))))
 
 
 
