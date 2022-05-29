@@ -12,14 +12,14 @@ xpaths = [#["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Populatio
            #"//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Population']/following::td[1]/span/text()[1] | "
            #"//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Population']/following::td[1]/span/span/text() | "
            #"//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Population']/following::td[1]/i/text()","Population"],
-               #["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='President']/td//a[1][not(contains(@href,'#cite'))]/text()","President"],
-               #["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Prime Minister']/td/a[1][not(contains(@href,'#cite'))]/text()","Prime_Minister"],
+               ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='President']/td//a[1][not(contains(@href,'#cite'))]/text()","President"],
+               ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Prime Minister']/td/a[1][not(contains(@href,'#cite'))]/text()","Prime_Minister"],
                ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Area ']/following::td[1]/text()[1] | "
                 "//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Area']/following::td[1]/text()[1] | "
                 "//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Area']/td/text()[1]", "Area"],
 
                #["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Capital']/td//a[1][not(contains(@href,'#cite'))]/@href","Capital"],
-               ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Government']/td//a[not(contains(@href,'#cite'))]/@href","Government_Form"]]
+               ]#["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Government']/td//a[not(contains(@href,'#cite'))]/@href","Government_Form"]]
 
 ## people's xpaths
 p_birth_date_xpath = "//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Born']//span[@class='bday']//text()"
@@ -36,7 +36,7 @@ count = 0
 
 def create_ontology():
     import_countries()
-    for i in range(0):
+    for i in range(1):
         countries_queue.get()
     while not countries_queue.empty():
         country = countries_queue.get()
@@ -107,13 +107,13 @@ def get_prim_and_pres(p, g):
     for elem in doc.xpath(p_birth_date_xpath):
         if (elem):
             print(str(RDF_URI_PREFIX + elem).strip() + " is the " + RDF_URI_PREFIX + "Birth_Date" + " of " + RDF_URI_PREFIX + p.replace(" ", "_"))
-            g.add((str(RDF_URI_PREFIX + elem).strip(), URIRef(RDF_URI_PREFIX + "Birth_Date"),
+            g.add((URIRef(str(RDF_URI_PREFIX + elem).strip()), URIRef(RDF_URI_PREFIX + "Birth_Date"),
                    URIRef(RDF_URI_PREFIX + p.replace(" ", "_"))))
 
 
 def search_for_country(elem):
     for country in states:
-        if(country in str(elem)):
+        if(country in str(elem).split(",")[-1].strip()):
             return country
     return None
 
