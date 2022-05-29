@@ -17,8 +17,9 @@ xpaths = [#["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Populatio
                ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Area ']/following::td[1]/text()[1] | "
                 "//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Area']/following::td[1]/text()[1] | "
                 "//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Area']/td/text()[1]", "Area"],
-               ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Capital']/td//a[1][not(contains(@href,'#cite'))]/@href","Capital"],
-               ]#["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Government']/td//a[not(contains(@href,'#cite'))]/@href","Government_Form"]]
+
+               #["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Capital']/td//a[1][not(contains(@href,'#cite'))]/@href","Capital"],
+               ["//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Government']/td//a[not(contains(@href,'#cite'))]/@href","Government_Form"]]
 
 ## people's xpaths
 p_birth_date_xpath = "//table[contains(@class, 'infobox')]/tbody/tr[th//text()='Born']//span[@class='bday']//text()"
@@ -35,7 +36,7 @@ count = 0
 
 def create_ontology():
     import_countries()
-    for i in range(220):
+    for i in range(0):
         countries_queue.get()
     while not countries_queue.empty():
         country = countries_queue.get()
@@ -71,21 +72,21 @@ def add_to_ontology(country, xpath, literal, g):
             print(RDF_URI_PREFIX + literal + " of " + RDF_URI_PREFIX + country[5:] + " is " + Literal(str(RDF_URI_PREFIX+elem).strip()))
         elif (literal == "Capital"):
             g.add((URIRef(str(RDF_URI_PREFIX+elem[5:]).strip()), URIRef(RDF_URI_PREFIX + literal), URIRef(RDF_URI_PREFIX + country[5:])))
-            print(RDF_URI_PREFIX + literal + " of " + RDF_URI_PREFIX + country[5:] + " is " + Literal(str(RDF_URI_PREFIX+elem[5:]).strip()))
-            count += 1
+            #print(RDF_URI_PREFIX + literal + " of " + RDF_URI_PREFIX + country[5:] + " is " + Literal(str(RDF_URI_PREFIX+elem[5:]).strip()))
             break
         elif (literal in ["Area", "Population"]):
             elem = urllib.parse.unquote(elem)
             if elem == "" or elem == " " or elem == " (" or elem == "(":
                 continue
-            #print(elem)
             elem = re.match("^([-0-9,\.–]+).*",elem)
             elem = elem.group(1)
             g.add((Literal(str(elem).strip()), URIRef(RDF_URI_PREFIX + literal), URIRef(RDF_URI_PREFIX + country[5:])))
             print(RDF_URI_PREFIX + literal + " of " + RDF_URI_PREFIX + country[5:] + " is " + Literal(str(elem).strip()))
-            count+=1
             break
         else:
+            newelem = re.match("(.*)#.*",urllib.parse.unquote(elem))
+            if newelem:
+                elem = newelem.group(1)
             g.add((URIRef(str(RDF_URI_PREFIX+elem[5:]).strip()), URIRef(RDF_URI_PREFIX + literal), URIRef(RDF_URI_PREFIX + country[5:])))
             elem = urllib.parse.unquote(elem)
             print(RDF_URI_PREFIX + literal + " of " + RDF_URI_PREFIX + country[5:] + " is " + Literal(str(RDF_URI_PREFIX+elem).strip()))
