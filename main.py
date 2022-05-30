@@ -142,43 +142,44 @@ def get_answer(question):
 def create_sparql_query(input_question):
     g = Graph().parse("ontology.nt")
     length=len(input_question)
-    lstq = input_question.split().strip()
+    lstq = input_question.split()
     if(lstq[0] == "Who" and lstq[1] == "is"):
         if(lstq[3] == "the"):
-            who_is_query(retrive_from_lst_by_len(lstq,2,lenght)) ##q11
+            #who_is_query(retrive_from_lst_by_len(lstq,2,length)) ##q11
+            #return "select ?a where {<http://example.org/"+country+"> <http://example.org/"+lstq[3]+"> ?a.}"
         else:
-            country = retrive_from_lst_by_len(lstq,5,lenght)
-            who_is_the_query(country,lstq[3]) ##q1, q2
+            country = retrive_from_lst_by_len(lstq,5,length)
+            #who_is_the_query(country,lstq[3]) ##q1, q2
 
-            return "select ?a where {<http://example.org/"+country+"> <http://example.org/"+lstq[3]+"> ?a.}"
+           
     elif(lstq[0] == "What" and lstq[1] == "is" and lstq[2] == "the"):
         if(lstq[3] == "form"):
-            what_is_form_query(retrive_from_lst_by_len(lstq,7,lenght),(lstq[5]+" "+lstq[3])) ##q5
-            return "select ?a where {<http://example.org/"+lstq[5]+"> <http://example.org/"+lstq[3]+"> ?a.} "
+            #what_is_form_query(retrive_from_lst_by_len(lstq,7,length),(lstq[5]+" "+lstq[3])) ##q5
+            #return "select ?a where {<http://example.org/"+lstq[5]+"> <http://example.org/"+lstq[3]+"> ?a.} "
         else:
-            what_is_query(retrive_from_lst_by_len(lstq,5,lenght),lstq[3]) ##q3,q4,q6
+            #what_is_query(retrive_from_lst_by_len(lstq,5,length),lstq[3]) ##q3,q4,q6
     elif(lstq[0] == "When" and lstq[1] == "was" and lstq[2] == "the"):
         if(lstq[3] == "president"):
-            when_was_president_query(retrive_from_lst_by_len(lstq,5,lenght),lst[3]) ##q7
+            #when_was_president_query(retrive_from_lst_by_len(lstq,5,length),lst[3]) ##q7
         else:
-            when_was_prime_query(retrive_from_lst_by_len(lstq,6,lenght),(lst[3]+" "+lst[4])) ##q9
+            #when_was_prime_query(retrive_from_lst_by_len(lstq,6,length),(lst[3]+" "+lst[4])) ##q9
     elif(lstq[0] == "Where" and lstq[1] == "was" and lstq[2] == "the"):
         if(lstq[3] == "president"):
-            where_was_president_query(retrive_from_lst_by_len(lstq,5,lenght),lst[3]) ##q8
+            #where_was_president_query(retrive_from_lst_by_len(lstq,5,length),lst[3]) ##q8
         else:
-            where_was_prime_query(retrive_from_lst_by_len(lstq,6,lenght),(lst[3]+" "+lst[4])) ##q10
+            #where_was_prime_query(retrive_from_lst_by_len(lstq,6,length),(lst[3]+" "+lst[4])) ##q10
     elif(lstq[0] == "How" and lstq[1] == "many"):
-        if(lstq[2] == "presidents" and lstq[lenght-1] == "born"):
-            how_many_presidents_born_query(retrive_from_lst_by_len(lstq,6,lenght)) ##q14
-        elif(lstq[lenght-1] == "country"):
-            how_many_presidents_self_born_query() ##personal
+        if(lstq[2] == "presidents" and lstq[length-1] == "born"):
+            #how_many_presidents_born_query(retrive_from_lst_by_len(lstq,6,length)) ##q14
+        elif(lstq[length-1] == "country"):
+            #how_many_presidents_self_born_query() ##personal
         else:
             gov1 = retrive_from_lst_by_str(lstq,2,"are")
             i = get_index(lstq,"also")
-            gov2 = retrive_from_lst_by_len(lstq,i+1,lenght)
-            how_many_governmnet_form_query(gov1,gov2) ##q12
+            gov2 = retrive_from_lst_by_len(lstq,i+1,length)
+            #how_many_governmnet_form_query(gov1,gov2) ##q12
     elif(lstq[0] == "List" and lstq[1] == "all"):
-        list_all_query(retrive_from_lst_by_len(lstq,10,lenght)) ##q13
+        #list_all_query(retrive_from_lst_by_len(lstq,10,length)) ##q13
 
 
 def retrive_from_lst_by_len(lst,i,j):
@@ -188,7 +189,7 @@ def retrive_from_lst_by_len(lst,i,j):
             ret += "_"
         ret += lst[i]
     if(j == len(lst)):
-        ret = ret[:lenght-1]
+        ret = ret[:len(lst)-1]
     return ret
 
 def retrive_from_lst_by_str(lst,i,st):
