@@ -141,12 +141,12 @@ def get_answer(question):
 ##### queries ------------------------
 def create_sparql_query(input_question):
     g = Graph().parse("ontology.nt")
-    length=len(input_question)
     lstq = input_question.split()
+    length=len(lstq)
     if(lstq[0] == "Who" and lstq[1] == "is"):
         if(lstq[3] == "the"):
-            #who_is_query(retrive_from_lst_by_len(lstq,2,length)) ##q11
-            #return "select ?a where {<http://example.org/"+country+"> <http://example.org/"+lstq[3]+"> ?a.}"
+            #who_is_query(retrive_from_lst_by_len(lstq,3,length)) ##q11
+            #return "select ?a where {<http://example.org/"+retrive_from_lst_by_len(lstq,3,length)+"> <http://example.org/"+lstq[3]+"> ?a.}"
         else:
             country = retrive_from_lst_by_len(lstq,5,length)
             #who_is_the_query(country,lstq[3]) ##q1, q2
@@ -187,7 +187,7 @@ def retrive_from_lst_by_len(lst,i,j):
     for k in range(i,j):
         if(ret != ""):
             ret += "_"
-        ret += lst[i]
+        ret += lst[k]
     if(j == len(lst)):
         ret = ret[:len(lst)-1]
     return ret
