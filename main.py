@@ -1,5 +1,5 @@
 import urllib.parse
-
+import sys
 from rdflib import *
 import lxml.html
 import requests
@@ -17,7 +17,6 @@ xpaths = [["//table[contains(@class, 'infobox')][1]/tbody/tr[th//text()='Populat
                ["//table[contains(@class, 'infobox')][1]/tbody/tr[th//text()='Area ']/following::td[1]/text()[1] | "
                 "//table[contains(@class, 'infobox')][1]/tbody/tr[th//text()='Area']/following::td[1]/text()[1] | "
                 "//table[contains(@class, 'infobox')][1]/tbody/tr[th//text()='Area']/td/text()[1]", "Area"],
-
                ["//table[contains(@class, 'infobox')][1]/tbody/tr[th//text()='Capital']/td//a[1][not(contains(@href,'#cite'))]/@href","Capital"],
                ["//table[contains(@class, 'infobox')][1]/tbody/tr[th//text()='Government']/td//a[not(contains(@href,'#cite'))]/@href","Government_Form"]]
 
@@ -32,7 +31,9 @@ RDF_URI_PREFIX = "http://example.org/"
 labels_for_country = ["Prime_Minister", "President", "Government_Form", "capital", "Area", "Population"]
 labels_for_Persons = ["Born"]
 g = Graph()
-cnt = [["States: ",0],["Prim: ",0],["Pres: ",0],["Gov: ",0],["Cap: ",0],["Area: ",0],["Pop: ",0],["Date: ",0],["Place: ",0]]
+create = "create"
+question = "question"
+cnt = [["States: ", 0], ["Prim: ", 0], ["Pres: ", 0], ["Gov: ", 0], ["Cap: ", 0], ["Area: ", 0], ["Pop: ", 0], ["Date: ", 0 ], ["Place: ", 0]]
 
 def create_ontology():
     import_countries()
@@ -45,8 +46,7 @@ def create_ontology():
             add_to_ontology(country, xp[0], xp[1], g)
     for a in cnt:
         print(str(a[0]) + str(a[1]))
-    #g.serialize(destination='ontology.nt', format='nt', encoding="utf-8", errors="ignore")
-    g.serialize(destination='ontology2.nt', format='nt', encoding="utf-8")
+    g.serialize(destination='ontology.nt', format='nt', encoding="utf-8", errors="ignore")
 
 
 def import_countries():
@@ -61,7 +61,6 @@ def import_countries():
 
 
 def add_to_ontology(country, xpath, literal, g):
-    global count
     r = requests.get(prefix + country)
     doc = lxml.html.fromstring(r.content)
     # If doc.xpath(xpath) is empty, doesn't go in
@@ -133,7 +132,24 @@ def search_for_country(elem):
             return country
     return None
 
-start = time.time()
-create_ontology()
-end = time.time()
-print("time: ",end - start)
+
+def get_answer(question):
+    g = Graph().parse("ontology.nt")
+    print("do_nothing")
+
+
+if __name__ == '__main__':
+    if sys.argv[1] == create:
+        start = time.time()
+        create_ontology()
+        end = time.time()
+        print("time: ", end - start)
+    elif sys.argv[1] == question:
+        get_answer(sys.argv[2])
+
+
+
+
+
+
+
