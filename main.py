@@ -30,12 +30,12 @@ prefix = "http://en.wikipedia.org/"
 RDF_URI_PREFIX = "http://example.org/"
 labels_for_country = ["Prime_Minister", "President", "Government_Form", "capital", "Area", "Population"]
 labels_for_Persons = ["Born"]
-g = Graph()
 create = "create"
 question = "question"
 cnt = [["States: ", 0], ["Prim: ", 0], ["Pres: ", 0], ["Gov: ", 0], ["Cap: ", 0], ["Area: ", 0], ["Pop: ", 0], ["Date: ", 0 ], ["Place: ", 0]]
 
 def create_ontology():
+    g = Graph()
     import_countries()
     for i in range(0):
         countries_queue.get()
@@ -134,8 +134,29 @@ def search_for_country(elem):
 
 
 def get_answer(question):
-    g = Graph().parse("ontology.nt")
+
+    who_is_query()
     print("do_nothing")
+
+
+def who_is_query():
+    g = Graph().parse("ontology.nt")
+    query_list_result = g.query("select ?x where {?x <http://example.org/President> <http://example.org/France>}")
+    for i in range(len(list(query_list_result))):
+        row = list(query_list_result)[i]  # get row i from query list result.
+        entity_with_uri = str(row[0])
+        print(entity_with_uri)
+        entity_with_uri = entity_with_uri.split("/")
+        entity_without_uri = entity_with_uri[-1]
+        # the next 3 code lines are to strip excessive spaces in the names.
+        entity_without_uri = entity_without_uri.replace("_", " ")
+        entity_without_uri = entity_without_uri.strip()
+        entity_without_uri = entity_without_uri.replace(" ", "_")
+        print(entity_without_uri)
+        #res_string += entity_without_uri + " "  # get the entity name without the uri.
+    #g.query("select ?x,?y where {
+    #?x <prefix + ?y> .
+    #?x < r2 > ?y}")
 
 
 if __name__ == '__main__':
