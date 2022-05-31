@@ -5,6 +5,7 @@ import lxml.html
 import requests
 import queue
 import re
+import time
 
 xpaths = [["//table[contains(@class, 'infobox')][1]/tbody/tr[th//text()='Population']/td/text()[1] | "
            "//table[contains(@class, 'infobox')][1]/tbody/tr[th//text()='Population']/following::td[1]/div/ul/li[1]/text()[1] | "
@@ -114,65 +115,91 @@ def get_prim_and_pres(p, g):
           #  " ", "_"))
         cnt[8][1] += 1
         g.add((URIRef(str(RDF_URI_PREFIX + "/wiki/"+ret.replace(" ", "_")).strip()), URIRef(RDF_URI_PREFIX + "Birth_Place"),
-               URIRef(RDF_URI_PREFIX + p.replace(" ", "_"))))
+               URIRef(RDF_URI_PREFIX + p[6:])))
     for elem in doc.xpath(p_birth_date_xpath):
         if (elem):
             cnt[7][1] += 1
             #print(URIRef(str(RDF_URI_PREFIX + elem.strip())),p)
             #print(str(RDF_URI_PREFIX + elem).strip() + " is the " + RDF_URI_PREFIX + "Birth_Date" + " of " + RDF_URI_PREFIX + p.replace(" ", "_"))
             g.add((URIRef(str(RDF_URI_PREFIX + elem).strip()), URIRef(RDF_URI_PREFIX + "Birth_Date"),
-                   URIRef(RDF_URI_PREFIX + p.replace(" ", "_"))))
-
+                   URIRef(RDF_URI_PREFIX + p[6:])))
 
 def search_for_country(elem):
     for i in range(len(elem)):
-        elem[i] = elem[i].replace("(", "").replace(")", "").replace(",", "").strip()
-    for country in states:
-        if(country in elem):
-            return country
+        el = elem[i].replace("(","").replace(")","")
+        el = el.split(",")
+        for j in range(len(el)):
+            el[j] = el[j].strip()
+        for country in states:
+            #if(country in str(elem).split(",")[-1].strip()):
+            if(country in el):
+                return country
     return None
 
 
 def get_answer(question):
-
-    who_is_query()
-    print("do_nothing")
+    g = Graph().parse("ontology.nt")
+    query = create_sparql_query(urllib.parse.quote(question))
+    answer = g.query(query)
+    for i in range(len(list(answer))):
+        row = list(answer)[i]  # get row i from query list result.
+        entity_with_uri = str(row[0])
+        print(entity_with_uri)
+        entity_with_uri = entity_with_uri.split("/")
+        entity_without_uri = entity_with_uri[-1]
+        # the next 3 code lines are to strip excessive spaces in the names.
+        entity_without_uri = entity_without_uri.replace("_", " ")
+        entity_without_uri = entity_without_uri.strip()
+        entity_without_uri = entity_without_uri.replace(" ", "_")
+        print(entity_without_uri)
            
 ##### queries ------------------------
 def create_sparql_query(input_question):
-    g = Graph().parse("ontology.nt")
+
     lstq = input_question.split()
     length=len(lstq)
     if(lstq[0] == "Who" and lstq[1] == "is"):
-        if(lstq[3] == "the"):
+        if(lstq[3] != "the"):
             #who_is_query(retrive_from_lst_by_len(lstq,3,length)) ##q11
-            #return "select ?a where {<http://example.org/"+retrive_from_lst_by_len(lstq,3,length)+"> <http://example.org/"+lstq[3]+"> ?a.}"
+                return "select ?x where {?x <http://example.org/President> ?y} UNION {select ?x where {?x <http://example.org/Prime_Minister> ?y}"
         else:
             country = retrive_from_lst_by_len(lstq,5,length)
             #who_is_the_query(country,lstq[3]) ##q1, q2
+            if lstq == "president":
+                return "select ?x where {?x <http://example.org/President> <http://example.org/"+retrive_from_lst_by_len(lstq,6,length)+">}"
+            else:
+                return "select ?x where {?x <http://example.org/Prim_Minister> <http://example.org/"+retrive_from_lst_by_len(lstq,7,length)+">}"
 
            
     elif(lstq[0] == "What" and lstq[1] == "is" and lstq[2] == "the"):
         if(lstq[3] == "form"):
             #what_is_form_query(retrive_from_lst_by_len(lstq,7,length),(lstq[5]+" "+lstq[3])) ##q5
             #return "select ?a where {<http://example.org/"+lstq[5]+"> <http://example.org/"+lstq[3]+"> ?a.} "
+            print("A")
         else:
+            print("A")
             #what_is_query(retrive_from_lst_by_len(lstq,5,length),lstq[3]) ##q3,q4,q6
     elif(lstq[0] == "When" and lstq[1] == "was" and lstq[2] == "the"):
         if(lstq[3] == "president"):
             #when_was_president_query(retrive_from_lst_by_len(lstq,5,length),lst[3]) ##q7
+            print("Todo")
         else:
             #when_was_prime_query(retrive_from_lst_by_len(lstq,6,length),(lst[3]+" "+lst[4])) ##q9
+            print("Todo")
     elif(lstq[0] == "Where" and lstq[1] == "was" and lstq[2] == "the"):
         if(lstq[3] == "president"):
             #where_was_president_query(retrive_from_lst_by_len(lstq,5,length),lst[3]) ##q8
+            print("Todo")
         else:
             #where_was_prime_query(retrive_from_lst_by_len(lstq,6,length),(lst[3]+" "+lst[4])) ##q10
+            print("Todo")
     elif(lstq[0] == "How" and lstq[1] == "many"):
         if(lstq[2] == "presidents" and lstq[length-1] == "born"):
             #how_many_presidents_born_query(retrive_from_lst_by_len(lstq,6,length)) ##q14
+            print("Todo")
         elif(lstq[length-1] == "country"):
             #how_many_presidents_self_born_query() ##personal
+            print("Todo")
         else:
             gov1 = retrive_from_lst_by_str(lstq,2,"are")
             i = get_index(lstq,"also")
@@ -180,6 +207,7 @@ def create_sparql_query(input_question):
             #how_many_governmnet_form_query(gov1,gov2) ##q12
     elif(lstq[0] == "List" and lstq[1] == "all"):
         #list_all_query(retrive_from_lst_by_len(lstq,10,length)) ##q13
+        print("Todo")
 
 
 def retrive_from_lst_by_len(lst,i,j):
@@ -204,7 +232,7 @@ def retrive_from_lst_by_str(lst,i,st):
 def get_index(lst,st):
     i = 0
     while(lst[i] != st):
-        i++
+        i+=1
     return i
 
 ### queries-------------------------------------------------------
