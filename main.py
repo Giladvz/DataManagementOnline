@@ -139,7 +139,7 @@ def search_for_country(elem):
 
 def get_answer(question):
     g = Graph().parse("ontology.nt")
-    query = create_sparql_query(urllib.parse.quote(question))
+    query = create_sparql_query(question)
     answer = g.query(query)
     for i in range(len(list(answer))):
         row = list(answer)[i]  # get row i from query list result.
@@ -155,20 +155,24 @@ def get_answer(question):
            
 ##### queries ------------------------
 def create_sparql_query(input_question):
-
     lstq = input_question.split()
+    print(lstq)
     length=len(lstq)
     if(lstq[0] == "Who" and lstq[1] == "is"):
-        if(lstq[3] != "the"):
+        if(lstq[2] != "the"):
             #who_is_query(retrive_from_lst_by_len(lstq,3,length)) ##q11
+                print("select ?x where {?x <http://example.org/President> ?y} UNION {select ?x where {?x <http://example.org/Prime_Minister> ?y}")
                 return "select ?x where {?x <http://example.org/President> ?y} UNION {select ?x where {?x <http://example.org/Prime_Minister> ?y}"
         else:
-            country = retrive_from_lst_by_len(lstq,5,length)
+
             #who_is_the_query(country,lstq[3]) ##q1, q2
-            if lstq == "president":
-                return "select ?x where {?x <http://example.org/President> <http://example.org/"+retrive_from_lst_by_len(lstq,6,length)+">}"
+            if lstq[3] == "president":
+                country = retrive_from_lst_by_len(lstq, 5, length).replace(" ","_")
+                country = urllib.parse.quote(country)
+                print("select ?x where {?x <http://example.org/President> <http://example.org/"+country+">}")
+                return "select ?x where {?x <http://example.org/President> <http://example.org/"+country+">}"
             else:
-                return "select ?x where {?x <http://example.org/Prim_Minister> <http://example.org/"+retrive_from_lst_by_len(lstq,7,length)+">}"
+                return "select ?x where {?x <http://example.org/Prim_Minister> <http://example.org/"+retrive_from_lst_by_len(lstq,6,length)+">}"
 
            
     elif(lstq[0] == "What" and lstq[1] == "is" and lstq[2] == "the"):
@@ -217,7 +221,7 @@ def retrive_from_lst_by_len(lst,i,j):
             ret += "_"
         ret += lst[k]
     if(j == len(lst)):
-        ret = ret[:len(lst)-1]
+        ret = ret[:len(lst)]
     return ret
 
 def retrive_from_lst_by_str(lst,i,st):
