@@ -114,7 +114,7 @@ def get_prim_and_pres(p, g):
          #   str(RDF_URI_PREFIX + "/wiki/"+ret.replace(" ", "_")).strip()) + " is the " + RDF_URI_PREFIX + "Birth_Place" + " of " + RDF_URI_PREFIX + p.replace(
           #  " ", "_"))
         cnt[8][1] += 1
-        g.add((URIRef(str(RDF_URI_PREFIX + "/wiki/"+ret.replace(" ", "_")).strip()), URIRef(RDF_URI_PREFIX + "Birth_Place"),
+        g.add((URIRef(str(RDF_URI_PREFIX + ret.replace(" ", "_")).strip()), URIRef(RDF_URI_PREFIX + "Birth_Place"),
                URIRef(RDF_URI_PREFIX + p[6:])))
     for elem in doc.xpath(p_birth_date_xpath):
         if (elem):
@@ -162,9 +162,9 @@ def create_sparql_query(input_question):
     if(lstq[0] == "Who" and lstq[1] == "is"):
         if(lstq[2] != "the"):
             #who_is_query("_".join(lst[5:]).replace("?","")) ##q11
-                print("select ?x ?y where {<http://example.org/"+"_".join(lst[5:]).replace("?","")+" ?x ?y}")
+                print("select ?x ?y where {<http://example.org/"+"_".join(lstq[5:]).replace("?","")+" ?x ?y FILTER(?x = <http://example.org/President || ?x = <http://example.org/Prime_Minister)}")
                 #                return "select ?x where {?x <http://example.org/President> ?y} UNION {select ?x where {?x <http://example.org/Prime_Minister> ?y}"
-                return "select ?x where {<http://example.org/"+"_".join(lst[5:]).replace("?","")+" ?x ?y}"
+                return "select ?x where {<http://example.org/"+"_".join(lstq[5:]).replace("?","")+" ?x ?y}"
         else:
 
             #who_is_the_query(country,lstq[3]) ##q1, q2 V V
@@ -209,7 +209,7 @@ def create_sparql_query(input_question):
             print("Todo")
     elif(lstq[0] == "How" and lstq[1] == "many"):
         if(lstq[2] == "presidents" and lstq[length-1] == "born"):
-            return "select (COUNT(?x) AS ?count) where {<http://example.org/Israel> <http://example.org/President> ?x}"
+            return return "select (COUNT(?x) AS ?count) where {?x  <http://example.org/President> <http://example.org/"+"_".join(lstq[6:]).replace("?","")+">}"
             #how_many_presidents_born_query("_".join(lstq[6:]).replace("?","")) ##q14
             print("Todo")
         elif(lstq[length-1] == "country"):
