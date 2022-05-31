@@ -138,20 +138,19 @@ def search_for_country(elem):
 
 
 def get_answer(question):
-    g = Graph().parse("ontology.nt")
-    query = create_sparql_query(question)
-    answer = g.query(query)
-    for i in range(len(list(answer))):
-        row = list(answer)[i]  # get row i from query list result.
-        entity_with_uri = str(row[0])
-        print(entity_with_uri)
-        entity_with_uri = entity_with_uri.split("/")
-        entity_without_uri = entity_with_uri[-1]
-        # the next 3 code lines are to strip excessive spaces in the names.
-        entity_without_uri = entity_without_uri.replace("_", " ")
-        entity_without_uri = entity_without_uri.strip()
-        entity_without_uri = entity_without_uri.replace(" ", "_")
-        print(entity_without_uri)
+           input_question = "Who is Joe Biden"
+           sparql_query = create_sparql_query(input_question)
+           g = Graph()
+           g.parse("ontology.nt", format="nt")
+           query_list_result = g.query(sparql_query)
+           if(input_question[:6] == "Who is" and input_question[:10] != "who is the"):
+                      x = list(query_list_result)
+                      res = [None]*len(x)
+                      for i in range(len(x)):
+                                 res[i] = x[i][0].replace("http://example.org/","").replace("_"," ") + " of "+ x[i][1].replace("http://example.org/","").replace("_"," ")
+                      return(res)
+           else:   
+                      return(query_decoder(query_list_result))
            
 ### queries-------------------------------------------------------
 
@@ -161,10 +160,7 @@ def create_sparql_query(input_question):
     length=len(lstq)
     if(lstq[0] == "Who" and lstq[1] == "is"):
         if(lstq[2] != "the"):
-            #who_is_query("_".join(lst[5:]).replace("?","")) ##q11
-                print("select ?x ?y where {<http://example.org/"+"_".join(lstq[5:]).replace("?","")+" ?x ?y FILTER(?x = <http://example.org/President || ?x = <http://example.org/Prime_Minister)}")
-                #                return "select ?x where {?x <http://example.org/President> ?y} UNION {select ?x where {?x <http://example.org/Prime_Minister> ?y}"
-                return "select ?x where {<http://example.org/"+"_".join(lstq[5:]).replace("?","")+" ?x ?y}"
+                return "select ?x ?y where {<http://example.org/"+"_".join(lstq[2:]).replace("?","")+"> ?x ?y}"      
         else:
 
             #who_is_the_query(country,lstq[3]) ##q1, q2 V V
