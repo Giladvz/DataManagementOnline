@@ -153,91 +153,110 @@ def get_answer(question):
         entity_without_uri = entity_without_uri.replace(" ", "_")
         print(entity_without_uri)
            
-##### queries ------------------------
+### queries-------------------------------------------------------
+
 def create_sparql_query(input_question):
     lstq = input_question.split()
     print(lstq)
     length=len(lstq)
     if(lstq[0] == "Who" and lstq[1] == "is"):
         if(lstq[2] != "the"):
-            #who_is_query(retrive_from_lst_by_len(lstq,3,length)) ##q11
-                print("select ?x where {?x <http://example.org/President> ?y} UNION {select ?x where {?x <http://example.org/Prime_Minister> ?y}")
-                return "select ?x where {?x <http://example.org/President> ?y} UNION {select ?x where {?x <http://example.org/Prime_Minister> ?y}"
+            #who_is_query("_".join(lst[5:]).replace("?","")) ##q11
+                print("select ?x ?y where {<http://example.org/"+"_".join(lst[5:]).replace("?","")+" ?x ?y}")
+                #                return "select ?x where {?x <http://example.org/President> ?y} UNION {select ?x where {?x <http://example.org/Prime_Minister> ?y}"
+                return "select ?x where {<http://example.org/"+"_".join(lst[5:]).replace("?","")+" ?x ?y}"
         else:
 
-            #who_is_the_query(country,lstq[3]) ##q1, q2
+            #who_is_the_query(country,lstq[3]) ##q1, q2 V V
             if lstq[3] == "president":
-                country = retrive_from_lst_by_len(lstq, 5, length).replace(" ","_")
+                country = "_".join(lstq[5:]).replace("?","")
                 country = urllib.parse.quote(country)
                 print("select ?x where {?x <http://example.org/President> <http://example.org/"+country+">}")
                 return "select ?x where {?x <http://example.org/President> <http://example.org/"+country+">}"
             else:
-                return "select ?x where {?x <http://example.org/Prim_Minister> <http://example.org/"+retrive_from_lst_by_len(lstq,6,length)+">}"
+                return "select ?x where {?x <http://example.org/Prime_Minister> <http://example.org/"+"_".join(lstq[6:]).replace("?","")+">}"
 
            
     elif(lstq[0] == "What" and lstq[1] == "is" and lstq[2] == "the"):
         if(lstq[3] == "form"):
-            #what_is_form_query(retrive_from_lst_by_len(lstq,7,length),(lstq[5]+" "+lstq[3])) ##q5
+            #what_is_form_query("_".join(lstq[7:]).replace("?",""),(lstq[5]+" "+lstq[3])) ##q5 V
+            return "select ?x where {?x <http://example.org/Government_Form> <http://example.org/"+"_".join(lstq[7:]).replace("?","")+">}"
             #return "select ?a where {<http://example.org/"+lstq[5]+"> <http://example.org/"+lstq[3]+"> ?a.} "
             print("A")
+        elif (lstq[3] == "capital"): ##q6 V
+            return "select ?x where {?x <http://example.org/"+(lstq[3].capitalize())+">  <http://example.org/"+"_".join(lstq[5:]).replace("?","")+">}"
         else:
-            print("A")
-            #what_is_query(retrive_from_lst_by_len(lstq,5,length),lstq[3]) ##q3,q4,q6
+            #what_is_query("_".join(lstq[5:]).replace("?",""),lstq[3]) ##q3,q4 V V
+            return "select ?x where { <http://example.org/"+"_".join(lstq[5:]).replace("?","")+"> <http://example.org/"+(lstq[3].capitalize())+"> ?x}"
     elif(lstq[0] == "When" and lstq[1] == "was" and lstq[2] == "the"):
         if(lstq[3] == "president"):
-            #when_was_president_query(retrive_from_lst_by_len(lstq,5,length),lst[3]) ##q7
+            #when_was_president_query("_".join(lstq[5:]).replace("?",""),lst[3]) ##q7
+            return "select ?x where {  ?y <http://example.org/President>  <http://example.org/"+"_".join(lstq[5:length-1]).replace("?","")+"> . ?x <http://example.org/Birth_Date>  ?y}"
+            #return "select ?x where {  ?x <http://example.org/Birth_Date>  <http://example.org/Joe_Biden>}"
             print("Todo")
         else:
-            #when_was_prime_query(retrive_from_lst_by_len(lstq,6,length),(lst[3]+" "+lst[4])) ##q9
+            #when_was_prime_query("_".join(lstq[6:]).replace("?",""),(lst[3]+" "+lst[4])) ##q9
+            return "select ?x where {  ?y <http://example.org/Prime_Minister>  <http://example.org/"+"_".join(lstq[6:length-1]).replace("?","")+"> . ?x <http://example.org/Birth_Date>  ?y}"
             print("Todo")
     elif(lstq[0] == "Where" and lstq[1] == "was" and lstq[2] == "the"):
         if(lstq[3] == "president"):
-            #where_was_president_query(retrive_from_lst_by_len(lstq,5,length),lst[3]) ##q8
+            #where_was_president_query("_".join(lstq[5:]).replace("?",""),lst[3]) ##q8
+            return "select ?x where {  ?y <http://example.org/President>  <http://example.org/"+"_".join(lstq[5:length-1]).replace("?","")+"> . ?x <http://example.org/Birth_Place>  ?y}"
             print("Todo")
         else:
-            #where_was_prime_query(retrive_from_lst_by_len(lstq,6,length),(lst[3]+" "+lst[4])) ##q10
+            #where_was_prime_query("_".join(lstq[6:]).replace("?",""),(lst[3]+" "+lst[4])) ##q10
+            return "select ?x where {  ?y <http://example.org/Prime_Minister>  <http://example.org/"+"_".join(lstq[6:length-1]).replace("?","")+"> . ?x <http://example.org/Birth_Place>  ?y}"
             print("Todo")
     elif(lstq[0] == "How" and lstq[1] == "many"):
         if(lstq[2] == "presidents" and lstq[length-1] == "born"):
-            #how_many_presidents_born_query(retrive_from_lst_by_len(lstq,6,length)) ##q14
+            return "select (COUNT(?x) AS ?count) where {<http://example.org/Israel> <http://example.org/President> ?x}"
+            #how_many_presidents_born_query("_".join(lstq[6:]).replace("?","")) ##q14
             print("Todo")
         elif(lstq[length-1] == "country"):
             #how_many_presidents_self_born_query() ##personal
             print("Todo")
         else:
-            gov1 = retrive_from_lst_by_str(lstq,2,"are")
-            i = get_index(lstq,"also")
-            gov2 = retrive_from_lst_by_len(lstq,i+1,length)
-            #how_many_governmnet_form_query(gov1,gov2) ##q12
+            index = get_index(lstq,"are")
+            gov1 = "_".join(lstq[2:index])
+            index = get_index(lstq,"also")
+            print(index)
+            gov2 = "_".join(lstq[index+1:]).replace("?","")
+            #how_many_governmnet_form_query(gov1,gov2) ##q12 V
+            return "select (COUNT(?x) AS ?count) where {<http://example.org/"+gov1+"> <http://example.org/Government_Form> ?x. <http://example.org/"+gov2+"> <http://example.org/Government_Form> ?x}"
     elif(lstq[0] == "List" and lstq[1] == "all"):
-        #list_all_query(retrive_from_lst_by_len(lstq,10,length)) ##q13
+        #list_all_query("_".join(lstq[10:]).replace("?","")) ##q13 V
+        return "select ?x where { ?capital <http://example.org/Capital> ?x . filter contains(replace(lcase(str(?capital)),'http://example.org/', ''),"+"_".join(lstq[10:])+")}"
         print("Todo")
-
-
-def retrive_from_lst_by_len(lst,i,j):
-    ret = ""
-    for k in range(i,j):
-        if(ret != ""):
-            ret += "_"
-        ret += lst[k]
-    if(j == len(lst)):
-        ret = ret[:len(lst)]
-    return ret
-
-def retrive_from_lst_by_str(lst,i,st):
-    ret = ""
-    while(lst[i] != st):
-        if(ret != ""):
-            ret += "_"
-        ret += lst[i]
-        i += 1
-    return ret
 
 def get_index(lst,st):
     i = 0
     while(lst[i] != st):
         i+=1
     return i
+
+
+def query_decoder(query_list_result):
+    print(query_list_result)
+    res_string = ""
+    for i in range (len(list(query_list_result))):
+        row = list(query_list_result)[i] # get row i from query list result.
+        entity_with_uri = str(row[0])
+        entity_with_uri = entity_with_uri.split("/")
+        entity_without_uri = entity_with_uri[-1]
+                #the next 3 code lines are to strip excessive spaces in the names.
+        entity_without_uri = entity_without_uri.replace("_"," ")
+        entity_without_uri = entity_without_uri.strip()
+        entity_without_uri = entity_without_uri.replace(" ","_")
+        res_string += entity_without_uri+" " #get the entity name without the uri.
+    names = res_string.split() #split the string to sort the names lexicographically
+    names.sort()
+    res_string = ""
+    for j in range (len(list(names))): #build string of names separated by ', '
+        res_string += names[j]+", "
+    res_string = res_string[0:len(res_string)-2] #remove the last ', ' in the string
+    res_string = res_string.replace("_", " ")
+    print(res_string)
+    return res_string
 
 ### queries-------------------------------------------------------
 
