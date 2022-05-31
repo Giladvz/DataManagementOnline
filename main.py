@@ -137,20 +137,19 @@ def search_for_country(elem):
     return None
 
 
-def get_answer(question):
-           input_question = "Who is Joe Biden"
-           sparql_query = create_sparql_query(input_question)
-           g = Graph()
-           g.parse("ontology.nt", format="nt")
-           query_list_result = g.query(sparql_query)
-           if(input_question[:6] == "Who is" and input_question[:10] != "who is the"):
-                      x = list(query_list_result)
-                      res = [None]*len(x)
-                      for i in range(len(x)):
-                                 res[i] = x[i][0].replace("http://example.org/","").replace("_"," ") + " of "+ x[i][1].replace("http://example.org/","").replace("_"," ")
-                      return(res)
-           else:   
-                      return(query_decoder(query_list_result))
+def get_answer(input_question):
+    sparql_query = create_sparql_query(input_question)
+    g = Graph()
+    g.parse("ontology.nt", format="nt")
+    query_list_result = g.query(sparql_query)
+    if(input_question[:6] == "Who is" and input_question[:10] != "who is the"):
+        x = list(query_list_result)
+        res = [None]*len(x)
+        for i in range(len(x)):
+                   res[i] = x[i][0].replace("http://example.org/","").replace("_"," ") + " of "+ x[i][1].replace("http://example.org/","").replace("_"," ")
+        return(res)
+    else:
+        return(query_decoder(query_list_result))
            
 ### queries-------------------------------------------------------
 
@@ -162,7 +161,6 @@ def create_sparql_query(input_question):
         if(lstq[2] != "the"):
                 return "select ?x ?y where {<http://example.org/"+"_".join(lstq[2:]).replace("?","")+"> ?x ?y}"      
         else:
-
             #who_is_the_query(country,lstq[3]) ##q1, q2 V V
             if lstq[3] == "president":
                 country = "_".join(lstq[5:]).replace("?","")
@@ -171,8 +169,6 @@ def create_sparql_query(input_question):
                 return "select ?x where {?x <http://example.org/President> <http://example.org/"+country+">}"
             else:
                 return "select ?x where {?x <http://example.org/Prime_Minister> <http://example.org/"+"_".join(lstq[6:]).replace("?","")+">}"
-
-           
     elif(lstq[0] == "What" and lstq[1] == "is" and lstq[2] == "the"):
         if(lstq[3] == "form"):
             #what_is_form_query("_".join(lstq[7:]).replace("?",""),(lstq[5]+" "+lstq[3])) ##q5 V
@@ -198,11 +194,9 @@ def create_sparql_query(input_question):
         if(lstq[3] == "president"):
             #where_was_president_query("_".join(lstq[5:]).replace("?",""),lst[3]) ##q8
             return "select ?x where {  ?y <http://example.org/President>  <http://example.org/"+"_".join(lstq[5:length-1]).replace("?","")+"> . ?x <http://example.org/Birth_Place>  ?y}"
-            print("Todo")
         else:
             #where_was_prime_query("_".join(lstq[6:]).replace("?",""),(lst[3]+" "+lst[4])) ##q10
             return "select ?x where {  ?y <http://example.org/Prime_Minister>  <http://example.org/"+"_".join(lstq[6:length-1]).replace("?","")+"> . ?x <http://example.org/Birth_Place>  ?y}"
-            print("Todo")
     elif(lstq[0] == "How" and lstq[1] == "many"):
         if(lstq[2] == "presidents" and lstq[length-1] == "born"):
             return return "select (COUNT(?x) AS ?count) where {?x  <http://example.org/President> <http://example.org/"+"_".join(lstq[6:]).replace("?","")+">}"
@@ -222,7 +216,6 @@ def create_sparql_query(input_question):
     elif(lstq[0] == "List" and lstq[1] == "all"):
         #list_all_query("_".join(lstq[10:]).replace("?","")) ##q13 V
         return "select ?x where { ?capital <http://example.org/Capital> ?x . filter contains(replace(lcase(str(?capital)),'http://example.org/', ''),"+"_".join(lstq[10:])+")}"
-        print("Todo")
 
 def get_index(lst,st):
     i = 0
@@ -232,7 +225,6 @@ def get_index(lst,st):
 
 
 def query_decoder(query_list_result):
-    print(query_list_result)
     res_string = ""
     for i in range (len(list(query_list_result))):
         row = list(query_list_result)[i] # get row i from query list result.
@@ -251,30 +243,9 @@ def query_decoder(query_list_result):
         res_string += names[j]+", "
     res_string = res_string[0:len(res_string)-2] #remove the last ', ' in the string
     res_string = res_string.replace("_", " ")
-    print(res_string)
     return res_string
 
-### queries-------------------------------------------------------
-
-
-def who_is_query():
-    g = Graph().parse("ontology.nt")
-    query_list_result = g.query("select ?x where {?x <http://example.org/President> <http://example.org/France>}")
-    for i in range(len(list(query_list_result))):
-        row = list(query_list_result)[i]  # get row i from query list result.
-        entity_with_uri = str(row[0])
-        print(entity_with_uri)
-        entity_with_uri = entity_with_uri.split("/")
-        entity_without_uri = entity_with_uri[-1]
-        # the next 3 code lines are to strip excessive spaces in the names.
-        entity_without_uri = entity_without_uri.replace("_", " ")
-        entity_without_uri = entity_without_uri.strip()
-        entity_without_uri = entity_without_uri.replace(" ", "_")
-        print(entity_without_uri)
-        #res_string += entity_without_uri + " "  # get the entity name without the uri.
-    #g.query("select ?x,?y where {
-    #?x <prefix + ?y> .
-    #?x < r2 > ?y}")
+### end of queries-------------------------------------------------------
 
 
 if __name__ == '__main__':
