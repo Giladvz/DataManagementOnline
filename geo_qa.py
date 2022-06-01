@@ -5,7 +5,7 @@ import lxml.html
 import requests
 import queue
 import re
-import time
+from unidecode import *
 
 xpaths = [["//table[contains(@class, 'infobox')][1]/tbody/tr[th//text()='Population']/td/text()[1] | "
            "//table[contains(@class, 'infobox')][1]/tbody/tr[th//text()='Population']/following::td[1]/div/ul/li[1]/text()[1] | "
@@ -29,8 +29,6 @@ states = []
 countries_queue = queue.Queue()
 prefix = "http://en.wikipedia.org/"
 RDF_URI_PREFIX = "http://example.org/"
-labels_for_country = ["Prime_Minister", "President", "Government_Form", "capital", "Area", "Population"]
-labels_for_Persons = ["Born"]
 create = "create"
 question = "question"
 cnt = [["States: ", 0], ["Prim: ", 0], ["Pres: ", 0], ["Gov: ", 0], ["Cap: ", 0], ["Area: ", 0], ["Pop: ", 0], ["Date: ", 0 ], ["Place: ", 0]]
@@ -45,8 +43,8 @@ def create_ontology():
         cnt[0][1] += 1
         for xp in xpaths:
             add_to_ontology(country, xp[0], xp[1], g)
-    for a in cnt:
-        print(str(a[0]) + str(a[1]))
+    #for a in cnt:
+    #    print(str(a[0]) + str(a[1]))
     g.serialize(destination='ontology.nt', format='nt', encoding="utf-8", errors="ignore")
 
 
@@ -69,6 +67,7 @@ def add_to_ontology(country, xpath, literal, g):
         elem = elem.strip()
         elem = elem.replace(" ", "_")
         elem = urllib.parse.quote(elem)
+        country = urllib.parse.quote(country)
         if (literal in ["Prime_Minister", "President"]):
             if (literal == "Prime_Minister"):
                 cnt[1][1] += 1
@@ -98,7 +97,7 @@ def add_to_ontology(country, xpath, literal, g):
         else:
             cnt[3][1] += 1
             g.add((URIRef(str(RDF_URI_PREFIX+elem[6:]).strip()), URIRef(RDF_URI_PREFIX + literal), URIRef(RDF_URI_PREFIX + country[6:])))
-            elem = urllib.parse.unquote(elem)
+            #elem = urllib.parse.unquote(elem)
             #print(URIRef(str(RDF_URI_PREFIX+elem[6:]).strip()), URIRef(RDF_URI_PREFIX + literal), URIRef(RDF_URI_PREFIX + country[6:]))
 
 
@@ -106,6 +105,7 @@ def add_to_ontology(country, xpath, literal, g):
 def get_prim_and_pres(p, g):
     p = urllib.parse.unquote(p)
     url = prefix + p
+    p = urllib.parse.quote(p)
     doc = lxml.html.fromstring((requests.get(url).content))
     birth_data = doc.xpath(p_birth_place_xpath)
     ret = search_for_country(birth_data)
@@ -114,7 +114,9 @@ def get_prim_and_pres(p, g):
          #   str(RDF_URI_PREFIX + "/wiki/"+ret.replace(" ", "_")).strip()) + " is the " + RDF_URI_PREFIX + "Birth_Place" + " of " + RDF_URI_PREFIX + p.replace(
           #  " ", "_"))
         cnt[8][1] += 1
-        g.add((URIRef(str(RDF_URI_PREFIX + ret.replace(" ", "_")).strip()), URIRef(RDF_URI_PREFIX + "Birth_Place"),
+        ret = ret.replace(" ","_")
+        ret = urllib.parse.quote(ret)
+        g.add((URIRef(str(RDF_URI_PREFIX + ret).strip()), URIRef(RDF_URI_PREFIX + "Birth_Place"),
                URIRef(RDF_URI_PREFIX + p[6:])))
     for elem in doc.xpath(p_birth_date_xpath):
         if (elem):
@@ -140,32 +142,42 @@ def search_for_country(elem):
 def get_answer(input_question):
     sparql_query = create_sparql_query(input_question)
     g = Graph()
-    g.parse("ontology.nt", format="nt")
+    g = g.parse("ontology.nt", format="nt")
     query_list_result = g.query(sparql_query)
-    if(input_question[:6] == "Who is" and input_question[:10] != "who is the"):
+    if(input_question[:6] == "Who is" and input_question[:10] != "Who is the"):
         x = list(query_list_result)
         res = [None]*len(x)
         for i in range(len(x)):
-                   res[i] = x[i][0].replace("http://example.org/","").replace("_"," ") + " of "+ x[i][1].replace("http://example.org/","").replace("_"," ")
-        return(res)
+            res[i] = x[i][0].replace("http://example.org/","").replace("_"," ") + " of "+ x[i][1].replace("http://example.org/","").replace("_"," ")
+        answer = ", ".join(res)
+        answer = urllib.parse.unquote(answer)
+        print(urllib.parse.unquote(answer))
     else:
-        return(query_decoder(query_list_result))
+        answer = query_decoder(query_list_result)
+        if input_question.find("area") != -1:
+            print(answer, "km squared")
+        else:
+            answer = urllib.parse.unquote(answer)
+            print(urllib.parse.unquote(answer))
            
 ### queries-------------------------------------------------------
 
 def create_sparql_query(input_question):
+    input_question = input_question.replace("?","")
     lstq = input_question.split()
-    print(lstq)
+    for i in range(len(lstq)):
+        lstq[i] = urllib.parse.quote(lstq[i])
+        lstq[i] = urllib.parse.quote(lstq[i])
     length=len(lstq)
     if(lstq[0] == "Who" and lstq[1] == "is"):
         if(lstq[2] != "the"):
-                return "select ?x ?y where {<http://example.org/"+"_".join(lstq[2:]).replace("?","")+"> ?x ?y}"      
+                return "select ?x ?y where {<http://example.org/"+"_".join(lstq[2:]).replace("?","")+"> ?x ?y}"
         else:
             #who_is_the_query(country,lstq[3]) ##q1, q2 V V
             if lstq[3] == "president":
                 country = "_".join(lstq[5:]).replace("?","")
                 country = urllib.parse.quote(country)
-                print("select ?x where {?x <http://example.org/President> <http://example.org/"+country+">}")
+                #print("select ?x where {?x <http://example.org/President> <http://example.org/"+country+">}")
                 return "select ?x where {?x <http://example.org/President> <http://example.org/"+country+">}"
             else:
                 return "select ?x where {?x <http://example.org/Prime_Minister> <http://example.org/"+"_".join(lstq[6:]).replace("?","")+">}"
@@ -174,22 +186,19 @@ def create_sparql_query(input_question):
             #what_is_form_query("_".join(lstq[7:]).replace("?",""),(lstq[5]+" "+lstq[3])) ##q5 V
             return "select ?x where {?x <http://example.org/Government_Form> <http://example.org/"+"_".join(lstq[7:]).replace("?","")+">}"
             #return "select ?a where {<http://example.org/"+lstq[5]+"> <http://example.org/"+lstq[3]+"> ?a.} "
-            print("A")
         elif (lstq[3] == "capital"): ##q6 V
             return "select ?x where {?x <http://example.org/"+(lstq[3].capitalize())+">  <http://example.org/"+"_".join(lstq[5:]).replace("?","")+">}"
         else:
             #what_is_query("_".join(lstq[5:]).replace("?",""),lstq[3]) ##q3,q4 V V
-            return "select ?x where { <http://example.org/"+"_".join(lstq[5:]).replace("?","")+"> <http://example.org/"+(lstq[3].capitalize())+"> ?x}"
+            return "select ?x where { <http://example.org/"+"_".join(lstq[5:]).replace("?","")+"> <http://example.org/"+lstq[3].capitalize()+"> ?x}"
     elif(lstq[0] == "When" and lstq[1] == "was" and lstq[2] == "the"):
         if(lstq[3] == "president"):
             #when_was_president_query("_".join(lstq[5:]).replace("?",""),lst[3]) ##q7
             return "select ?x where {  ?y <http://example.org/President>  <http://example.org/"+"_".join(lstq[5:length-1]).replace("?","")+"> . ?x <http://example.org/Birth_Date>  ?y}"
             #return "select ?x where {  ?x <http://example.org/Birth_Date>  <http://example.org/Joe_Biden>}"
-            print("Todo")
         else:
             #when_was_prime_query("_".join(lstq[6:]).replace("?",""),(lst[3]+" "+lst[4])) ##q9
             return "select ?x where {  ?y <http://example.org/Prime_Minister>  <http://example.org/"+"_".join(lstq[6:length-1]).replace("?","")+"> . ?x <http://example.org/Birth_Date>  ?y}"
-            print("Todo")
     elif(lstq[0] == "Where" and lstq[1] == "was" and lstq[2] == "the"):
         if(lstq[3] == "president"):
             #where_was_president_query("_".join(lstq[5:]).replace("?",""),lst[3]) ##q8
@@ -198,24 +207,22 @@ def create_sparql_query(input_question):
             #where_was_prime_query("_".join(lstq[6:]).replace("?",""),(lst[3]+" "+lst[4])) ##q10
             return "select ?x where {  ?y <http://example.org/Prime_Minister>  <http://example.org/"+"_".join(lstq[6:length-1]).replace("?","")+"> . ?x <http://example.org/Birth_Place>  ?y}"
     elif(lstq[0] == "How" and lstq[1] == "many"):
-        if(lstq[2] == "presidents" and lstq[length-1] == "born"):
-            return return "select (COUNT(?x) AS ?count) where {?x  <http://example.org/President> <http://example.org/"+"_".join(lstq[6:]).replace("?","")+">}"
+        if(lstq[2] == "presidents" and lstq[4] == "born"):
+            return "select (COUNT(?x) AS ?count) where {<http://example.org/"+"_".join(lstq[6:]).replace("?","") +">  <http://example.org/Birth_Place>  ?x. ?x <http://example.org/President> ?y}"
             #how_many_presidents_born_query("_".join(lstq[6:]).replace("?","")) ##q14
-            print("Todo")
-        elif(lstq[length-1] == "country"):
-            #how_many_presidents_self_born_query() ##personal
-            print("Todo")
+        elif(lstq[2] == "countries"):
+            #how_many_countries_are_governmnet_Form ##personal
+            return "select (COUNT(?x) AS ?count) where {<http://example.org/"+"_".join(lstq[4:]).replace("?","")+" <http://example.org/Government_Form> ?x}"
         else:
             index = get_index(lstq,"are")
             gov1 = "_".join(lstq[2:index])
             index = get_index(lstq,"also")
-            print(index)
             gov2 = "_".join(lstq[index+1:]).replace("?","")
             #how_many_governmnet_form_query(gov1,gov2) ##q12 V
             return "select (COUNT(?x) AS ?count) where {<http://example.org/"+gov1+"> <http://example.org/Government_Form> ?x. <http://example.org/"+gov2+"> <http://example.org/Government_Form> ?x}"
     elif(lstq[0] == "List" and lstq[1] == "all"):
         #list_all_query("_".join(lstq[10:]).replace("?","")) ##q13 V
-        return "select ?x where { ?capital <http://example.org/Capital> ?x . filter contains(replace(lcase(str(?capital)),'http://example.org/', ''),"+"_".join(lstq[10:])+")}"
+        return "select ?x where { ?capital <http://example.org/Capital> ?x filter(contains(replace(lcase(str(?capital)),'http://example.org/', ''), '"+"_".join(lstq[9:])+"'))}"
 
 def get_index(lst,st):
     i = 0
@@ -247,15 +254,15 @@ def query_decoder(query_list_result):
 
 ### end of queries-------------------------------------------------------
 
+def main(args):
+    if args[1] == create:
+        create_ontology()
+    elif args[1] == question:
+        get_answer(args[2])
+
 
 if __name__ == '__main__':
-    if sys.argv[1] == create:
-        start = time.time()
-        create_ontology()
-        end = time.time()
-        print("time: ", end - start)
-    elif sys.argv[1] == question:
-        get_answer(sys.argv[2])
+    main(sys.argv)
 
 
 
